@@ -1,0 +1,143 @@
+<!DOCTYPE html>  <!-- 声明文档类型为 HTML -->
+<html  lang="zh-CN"> <!-- HTML 文档的根元素 -->
+<head>  <!-- 文档头部，包含文档的元数据 -->
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<title>报名系统</title>  
+	<style> 
+		body {  
+			background-color: white; 
+			font-family: Arial;  
+			font-size: 18px; 
+			margin: 0;  
+			padding: 0;  
+		}
+		h1 {  
+			font-size: 36px;  
+			margin: 20px;  
+		}
+		form {  
+			display: flex;  
+			flex-direction: column; 
+			align-items: center;  
+			margin: 20px; 
+		}
+		label {  
+			margin: 10px;  
+		}
+		input[type="number"] {  
+			font-size: 18px;  
+			padding: 10px;  
+			margin: 10px;  
+			border-radius: 5px;  
+			border: none;  
+			box-shadow: 0px 0px 5px grey;  
+		}
+		select {  
+			margin: 10px;  
+			border-radius: 5px;  
+			border: none;  
+			box-shadow: 0px 0px 5px grey;  
+		}
+		button {  
+			font-size: 18px;  
+			padding: 10px;  
+			margin: 10px;  
+			border-radius: 5px;  
+			border: none;  
+			background-color: #4CAF50;  
+			color: white;  
+			cursor: pointer;  
+			box-shadow: 0px 0px 5px grey;  
+		}
+		ul {  
+			list-style-type: none; 
+			margin: 20px;  
+			padding: 10; 
+			font-size: 18px; 
+			background-color: #b7d3b8; 
+		}
+		li {  
+			margin: 10px;  
+		}
+	</style>
+</head>
+<body>  <!-- 文档主体 -->
+	<h1>报名系统</h1>  <!-- 标题 -->
+	<form>  <!-- 表单 -->
+		<label for="rank">请输入你的省排名</label>  <!-- 标签 -->
+		<input type="number" id="rank" name="rank" required>  <!-- 输入框 -->
+		<label for="subject">请选择文理科</label>  <!-- 标签 -->
+		<select id="subject" name="subject" required>  <!-- 下拉列表 -->
+			<option value="arts">文科</option>  <!-- 选项 -->
+			<option value="science">理科</option>  <!-- 选项 -->
+		</select>
+		<button type="submit" onclick="onSubmit(event)">提交</button>  <!-- 按钮 -->
+	</form>
+	<ul id="colleges"></ul>  <!-- 列表 -->
+	<script>
+		// 封装XMLHttpRequest的创建和发送以及响应的处理
+		function sendRequest(path, data, onSuccess, onError) {
+			const xhr = new XMLHttpRequest();// 创建 XMLHttpRequest 对象
+			xhr.onreadystatechange = function() {// 监听 readyState 的变化
+				if (xhr.readyState === 4) {// readyState 为 4 表示请求已完成
+					if (xhr.status === 200) {// status 为 200 表示请求成功
+						let colleges = JSON.parse(xhr.response); // 解析响应数据
+						console.log("返回数据1",colleges,colleges.length)
+						onSuccess(colleges);// 调用请求成功的回调函数
+					} else {
+						onError();//调用请求失败的回调函数
+					}
+				}
+			};
+			xhr.open('POST', path, true);// 打开 POST 请求
+			xhr.setRequestHeader('Content-Type', 'application/json',charset="UTF-8");// 设置请求头
+			const jsonData = JSON.stringify(data);// 将数据转换为 JSON 格式
+			xhr.send(jsonData);
+		}	
+		// 处理请求成功的响应
+		function displayColleges(colleges) {
+			const ul = document.getElementById("colleges");// 获取列表元素
+			if (!colleges) {  
+        		const li = document.createElement("li");  
+        		li.innerText = "请求失败,没有找到符合条件的学校";  
+        		ul.appendChild(li);  
+        		return;
+    	}
+			if (colleges.length === 0) {// 如果响应数据为空
+				const li = document.createElement("li"); // 创建列表项元素
+				li.innerText = "没有找到符合条件的学校";
+				ul.appendChild(li);// 添加列表项到列表
+			} else {
+				const li = document.createElement("li");
+				li.innerText = "你可以报考的学校有:";
+				ul.appendChild(li)
+				colleges.forEach(college => {
+					const li2 = document.createElement("li");
+					li2.innerText = college.name;
+					console.log(college.name)
+					ul.appendChild(li2);// 添加列表项到列表
+				});
+			}
+		}	
+		// 处理请求失败的响应
+		function displayError() {
+			const li = document.createElement("li");
+			li.innerText = "请求失败";
+			const ul = document.getElementById("colleges");
+			ul.appendChild(li);
+		}
+		// 处理表单提交事件
+		function onSubmit(event){
+			event.preventDefault(); // 阻止默认提交行为
+			const rank = document.getElementById("rank").value;
+			const subject = document.getElementById("subject").value;         
+			const path = "http://127.0.0.1:5000/way";// 设置请求路径
+			sendRequest(path, { rank: rank, subject: subject }, displayColleges, displayError);// 发送 POST 请求
+			const data ={rank:rank, subject:subject};
+			//console.log(jsonData); // 打印jsonData
+		}
+	</script>
+</body>
+</html>
